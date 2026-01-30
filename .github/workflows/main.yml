@@ -1,0 +1,30 @@
+name: UBUNTU_VPS
+
+on: workflow_dispatch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Initialize VPS
+        run: |
+          curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
+          echo "deb https://ngrok-agent.s3.amazonaws.com buster main" | sudo tee /etc/apt/sources.list.d/ngrok.list
+          sudo apt update && sudo apt install ngrok -y
+          
+          ngrok config add-authtoken YOUR_TOKEN_HERE
+          
+          echo "runneradmin:root123" | sudo chpasswd
+          sudo service ssh start
+          
+          ngrok tcp 22 --log=stdout > /dev/null &
+          sleep 10
+          
+          echo "------------------------------------"
+          echo "SSH CONNECTION COMMAND:"
+          curl -s http://localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url' | sed 's/tcp:\/\//ssh runneradmin@/' | sed 's/:/ -p /'
+          echo "PASSWORD: root123"
+          echo "------------------------------------"
+          
+          sleep 21600
+
