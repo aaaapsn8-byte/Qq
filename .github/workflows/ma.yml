@@ -1,0 +1,26 @@
+name: UBUNTU_VPS_FREE
+
+on: workflow_dispatch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Installing Tmate
+        run: sudo apt-get install tmate -y
+
+      - name: Starting VPS
+        run: |
+          tmate -S /tmp/tmate.sock new-session -d
+          tmate -S /tmp/tmate.sock wait tmate-ready
+          echo "------------------------------------"
+          echo "YOUR SSH CONNECTION INFO:"
+          tmate -S /tmp/tmate.sock display -p '#{tmate_ssh}'
+          echo "------------------------------------"
+          
+          # This will keep the VPS alive for 24 hours
+          sleep 21600
+
